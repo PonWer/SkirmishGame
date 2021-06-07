@@ -10,6 +10,7 @@ public class Unit : MonoBehaviour
     public UnitCombat combatScript;
     public AIDestinationSetter destinationSetter;
     public List<UnitBodyPart> bodyParts;
+    public List<Weapon> weapons;
 
     // Start is called before the first frame update
     void Awake()
@@ -18,10 +19,12 @@ public class Unit : MonoBehaviour
         combatScript = gameObject.GetComponent<UnitCombat>();
         destinationSetter = gameObject.GetComponent<AIDestinationSetter>();
         bodyParts = gameObject.GetComponentsInChildren<UnitBodyPart>().ToList();
+        weapons = gameObject.GetComponentsInChildren<Weapon>().ToList();
 
         healthScript.ThisUnit = this;
         combatScript.ThisUnit = this;
         bodyParts.ForEach(x => x.ThisUnit = this);
+        weapons.ForEach(x => x.ThisUnit = this);
 
     }
 }

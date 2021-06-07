@@ -78,7 +78,7 @@ namespace Pathfinding {
 		[SerializeField]
 		[HideInInspector]
 		[FormerlySerializedAs("centerOffset")]
-		float centerOffsetCompatibility;
+		float centerOffsetCompatibility = float.NaN;
 
 		/// <summary>
 		/// Determines which direction the agent moves in.
@@ -207,7 +207,7 @@ namespace Pathfinding {
 		public bool updateRotation = true;
 
 		/// <summary>Indicates if gravity is used during this frame</summary>
-		protected bool usingGravity { get; private set; }
+		protected bool usingGravity { get; set; }
 
 		/// <summary>Delta time used for movement during the last frame</summary>
 		protected float lastDeltaTime;
@@ -300,7 +300,13 @@ namespace Pathfinding {
 			destination = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
 		}
 
-		protected virtual void FindComponents () {
+		/// <summary>
+		/// Looks for any attached components like RVOController and CharacterController etc.
+		///
+		/// This is done during <see cref="OnEnable"/>. If you are adding/removing components during runtime you may want to call this function
+		/// to make sure that this script finds them. It is unfortunately prohibitive from a performance standpoint to look for components every frame.
+		/// </summary>
+		public virtual void FindComponents () {
 			tr = transform;
 			seeker = GetComponent<Seeker>();
 			rvoController = GetComponent<RVOController>();
@@ -340,7 +346,7 @@ namespace Pathfinding {
 
 		/// <summary>\copydoc Pathfinding::IAstarAI::Teleport</summary>
 		public virtual void Teleport (Vector3 newPosition, bool clearPath = true) {
-			if (clearPath) CancelCurrentPathRequest();
+			if (clearPath) ClearPath();
 			prevPosition1 = prevPosition2 = simulatedPosition = newPosition;
 			if (updatePosition) tr.position = newPosition;
 			if (rvoController != null) rvoController.Move(Vector3.zero);
@@ -354,7 +360,7 @@ namespace Pathfinding {
 		}
 
 		protected virtual void OnDisable () {
-			CancelCurrentPathRequest();
+			ClearPath();
 
 			// Make sure we no longer receive callbacks when paths complete
 			seeker.pathCallback -= OnPathComplete;
@@ -454,9 +460,22 @@ namespace Pathfinding {
 		/// <summary>Called when a requested path has been calculated</summary>
 		protected abstract void OnPathComplete (Path newPath);
 
+		/// <summary>
+		/// Clears the current path of the agent.
+		///
+		/// Usually invoked using <see cref="SetPath(null)"/>
+		///
+		/// See: <see cref="SetPath"/>
+		/// See: <see cref="isStopped"/>
+		/// </summary>
+		protected abstract void ClearPath ();
+
 		/// <summary>\copydoc Pathfinding::IAstarAI::SetPath</summary>
 		public void SetPath (Path path) {
-			if (path.PipelineState == PathState.Created) {
+			if (path == null) {
+				CancelCurrentPathRequest();
+				ClearPath();
+			} else if (path.PipelineState == PathState.Created) {
 				// Path has not started calculation yet
 				lastRepath = Time.time;
 				waitingForPathCalculation = true;

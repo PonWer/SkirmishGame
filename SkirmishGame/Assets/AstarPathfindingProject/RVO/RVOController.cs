@@ -105,7 +105,7 @@ namespace Pathfinding.RVO {
 		/// A smaller value can reduce CPU load, a higher value can lead to better local avoidance quality.
 		/// </summary>
 		[Tooltip("Max number of other agents to take into account.\n" +
-			 "A smaller value can reduce CPU load, a higher value can lead to better local avoidance quality.")]
+			"A smaller value can reduce CPU load, a higher value can lead to better local avoidance quality.")]
 		public int maxNeighbours = 10;
 
 		/// <summary>
@@ -381,6 +381,11 @@ namespace Pathfinding.RVO {
 			tr = transform;
 			ai = GetComponent<IAstarAI>();
 
+			var aiBase = ai as AIBase;
+			// Make sure the AI finds this component
+			// This is useful if the RVOController was added during runtime.
+			if (aiBase != null) aiBase.FindComponents();
+
 			if (RVOSimulator.active == null) {
 				Debug.LogError("No RVOSimulator component found in the scene. Please add one.");
 				enabled = false;
@@ -444,8 +449,8 @@ namespace Pathfinding.RVO {
 		/// <param name="pos">Point in world space to move towards.</param>
 		/// <param name="speed">Desired speed in world units per second.</param>
 		/// <param name="maxSpeed">Maximum speed in world units per second.
-		///     The agent will use this speed if it is necessary to avoid collisions with other agents.
-		///     Should be at least as high as speed, but it is recommended to use a slightly higher value than speed (for example speed*1.2).</param>
+		/// 	The agent will use this speed if it is necessary to avoid collisions with other agents.
+		/// 	Should be at least as high as speed, but it is recommended to use a slightly higher value than speed (for example speed*1.2).</param>
 		public void SetTarget (Vector3 pos, float speed, float maxSpeed) {
 			if (simulator == null) return;
 
