@@ -30,10 +30,19 @@ public class Weapon : MonoBehaviour
         //}
 
         var collidedUnit = collision.gameObject.GetComponentInParent<Unit>();
+        
         if (collidedUnit != ThisUnit)
         {
             //Debug.Log($"{gameObject.name} collided with {collision.gameObject.name}");
-            Debug.Log($"{collision.impulse}");
+
+            var unitBodyPart = collision.gameObject.GetComponent<UnitBodyPart>();
+            if (unitBodyPart != null)
+            {
+
+
+                //Debug.Log($"weapon impulse magnitude: {collision.impulse.magnitude}");
+                unitBodyPart.TakeDamage(collision.impulse.magnitude);
+            }
 
             //collidedUnit.healthScript.CurrentHealth--;
         }
